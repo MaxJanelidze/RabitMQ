@@ -1,7 +1,9 @@
 const fs = require('fs');
-var events = require('events');
+const events = require('events');
 
-var eventEmitter = new events.EventEmitter();
+const {result} = require('./Reader');
+
+const eventEmitter = new events.EventEmitter();
 
 let pubChannel = null;
 let offlinePubQueue = [];
@@ -42,16 +44,11 @@ function publish(exchange, routingKey, content) {
   }
 }
 
-const sendToExchange = function() {
-  let info = null;
-  setInterval(() => {
-    fs.readFile("./package.json", (err, data) => {
-      if(err) console.log(err.message);
-      info = JSON.parse(data);
-      publish("", "test", new Buffer(info.toString()));
-    });
-  }, 2000);
-};
+
+eventEmitter.on('ready', () => {
+  let info = result;
+  publish('', 'test', new Buffer(info));
+});
 
 function closeOnErr(Connection, err) {
   if (!err) return false;
@@ -59,7 +56,5 @@ function closeOnErr(Connection, err) {
   Connection.close();
   return true;
 }
-
-eventEmitter.on('ready', sendToExchange);
 
 module.exports = startPublisher;
