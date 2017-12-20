@@ -1,37 +1,43 @@
-const amqp = require('amqplib/callback_api');
+const cluster = require('cluster');
+const numCores = require('os').cpus();
 
-// if the connection is closed or fails to be established at all, we will reconnect
-let startWorker = null;
-let startPublisher = null;
-let amqpConn = null;
-function Start() {
-  amqp.connect('amqp://isnysdjb:DIQSzqFCJVM2PW43nEunRUCF6lxv48qr@spider.rmq.cloudamqp.com/isnysdjb', (err, conn) => {
-    if (err) {
-      console.error('[AMQP]', err.message);
-      return setTimeout(Start, 1000);
+if (cluster.isMaster) {
+  console.log(`Master: ${process.pid}`);
+  for (let i = 0; i < numCores.length; i++) cluster.fork();
+
+  // if a worker crashes, start a new one
+  cluster.on('exit', (worker, code, signal) => {
+    if (code !== 0 && !worker.exitedAfterDisconnect) {
+      console.log(`Worker ${worker.id} crashed. Starting new worker...`);
+      cluster.fork();
     }
-    conn.on('error', (err) => {
-      if (err.message !== 'Connection closing') {
-        console.error('[AMQP] conn error', err.message);
-      }
-    });
-    conn.on('close', () => {
-      console.error('[AMQP] reconnecting');
-      return setTimeout(Start, 1000);
-    });
-
-    console.log('[AMQP] connected');
-    amqpConn = conn;
-
-    startWorker = require('./cons/consumer')(amqpConn);
-    startPublisher = require('./pub/publisher')(amqpConn);
-    whenConnected(startPublisher, startWorker);
   });
-}
 
-function whenConnected(start, work) {
-  start;
-  work;
-}
+  process.on('SIGUSR2', () => {
+    const workers = Object.values(cluster.workers);
 
-Start();
+    function restartWorker(idx) {
+      const worker = workers[idx];
+      if (!worker) return;
+
+      worker.on('exit', () => {
+        if (worker.exitedAfterDisconnect) {
+          console.log(
+            `Worker ${worker.id} (pid: ${
+              worker.process.pid
+            }) has been taken down. Starting new child process...`
+          );
+          cluster.fork().on('listening', () => {
+            restartWorker(++idx);
+          });
+        }
+      });
+      worker.disconnect();
+    }
+
+    restartWorker(0);
+  });
+} else {
+  console.log(`Child: ${process.pid}`);
+  require('./amqp/amqpStarter');
+}
