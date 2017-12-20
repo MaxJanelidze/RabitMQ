@@ -1,3 +1,5 @@
+const worker = require('./worker');
+
 // A worker that acks messages only if processed succesfully
 const startWorker = function (Connection) {
   Connection.createChannel(function(err, ch) {
@@ -16,23 +18,19 @@ const startWorker = function (Connection) {
     });
 
     function processMsg(msg) {
-      work(msg, function(ok) {
+      worker(msg, function(ok) {
         try {
           if (ok)
             ch.ack(msg);
-          else
+          else {
             ch.reject(msg, true);
+          }
         } catch (e) {
           closeOnErr(e);
         }
       });
     }
   });
-}
-
-function work(msg, cb) {
-  console.log('Got msg', msg.content.toString());
-  cb(true);
 }
 
 function closeOnErr(Connection, err) {

@@ -23,8 +23,8 @@ function Start() {
     console.log('[AMQP] connected');
     amqpConn = conn;
 
-    startWorker = require('./Cons/Worker')(amqpConn);
-    startPublisher = require('./Pub/Publisher')(amqpConn);
+    startWorker = require('./cons/consumer')(amqpConn);
+    startPublisher = require('./pub/publisher')(amqpConn);
     whenConnected(startPublisher, startWorker);
   });
 }

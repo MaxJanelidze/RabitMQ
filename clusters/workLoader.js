@@ -41,5 +41,5 @@ if (cluster.isMaster) {
   });
 } else {
   console.log(`Child: ${process.pid}`);
-  require('../Starter');
+  require('../app');
 }
