@@ -7,7 +7,7 @@ let startPublisher = null;
 let amqpConn = null;
 
 function Start() {
-  amqp.connect(config.AMQP_URL, (err, conn) => {
+  amqp.connect(config.amqpUrl, (err, conn) => {
     if (err) {
       console.error('[AMQP]', err.message);
       return setTimeout(Start, 1000);
@@ -36,4 +36,4 @@ function whenConnected(start, work) {
   work;
 }
 
-Start();
+module.exports = {Start};
