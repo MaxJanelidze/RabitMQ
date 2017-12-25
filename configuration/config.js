@@ -8,8 +8,14 @@ const numCores = require('os').cpus();
  */
 let _getEnv = (key, defaultValue) => process.env[key] || defaultValue;
 
+const host = _getEnv('HOST', '');
+const user = _getEnv('USER', '');
+const password = _getEnv('PASSWORD', '');
+
+const amqpUrl = 'amqp://' + user + ':' + password + '@' + host + '/' + user;
+
 const config = {
-  amqpUrl: _getEnv('AMQP_URL', ''),
+  amqpUrl: amqpUrl,
   processCount: _getEnv('PROECESS_COUNT', numCores)
 };
 
