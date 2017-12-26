@@ -1,5 +1,7 @@
 const worker = require('./worker');
 
+const config = require('../configuration/config');
+
 // A worker that acks messages only if processed succesfully
 const startWorker = function (Connection) {
   Connection.createChannel(function(err, ch) {
@@ -13,7 +15,7 @@ const startWorker = function (Connection) {
     ch.prefetch(1);
     ch.assertQueue('test', { durable: true }, function(err, _ok) {
       if (closeOnErr(err)) return;
-      ch.consume('test', processMsg, { noAck: false });
+      ch.consume(config.queue, processMsg, { noAck: false });
       console.log('Worker is started');
     });
 

@@ -1,7 +1,7 @@
-const fs = require('fs');
 const events = require('events');
 
 const {result} = require('./Reader');
+const config = require('../configuration/config');
 
 const eventEmitter = new events.EventEmitter();
 
@@ -47,7 +47,7 @@ function publish(exchange, routingKey, content) {
 
 eventEmitter.on('ready', () => {
   let info = result;
-  publish('', 'test', new Buffer(info));
+  publish('', config.queue, new Buffer(info));
 });
 
 function closeOnErr(Connection, err) {

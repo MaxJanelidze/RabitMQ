@@ -16,7 +16,8 @@ const amqpUrl = 'amqp://' + user + ':' + password + '@' + host + '/' + user;
 
 const config = {
   amqpUrl: amqpUrl,
-  processCount: _getEnv('PROECESS_COUNT', numCores)
+  processCount: _getEnv('PROECESS_COUNT', numCores),
+  queue: _getEnv('QUEUE_NAME', 'abc')
 };
 
 module.exports = config;
